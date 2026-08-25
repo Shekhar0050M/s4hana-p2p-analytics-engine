@@ -48,10 +48,19 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
         UP TO 10 rows.
 
     LOOP AT l_i_ekko ASSIGNING FIELD-SYMBOL(<l_fs_ekko>).
-        out->write( | { <l_fs_ekko>-Currency } { <l_fs_ekko>-CurrencyISOCode } { <l_fs_ekko>-Decimals } | ).
+        out->write( |{ <l_fs_ekko>-Currency } { <l_fs_ekko>-CurrencyISOCode } { <l_fs_ekko>-Decimals } | ).
     ENDLOOP.
 
 ******************************************************************************************
+
+* Reading a row from internal table
+
+    DATA(idx) = sy-tabix.
+    IF line_exists( l_i_ekko[ idx ] ).
+        DATA(wa1) = l_i_ekko[ 1 ].
+        out->write( |{ wa1-Currency } { wa1-CurrencyISOCode }| ).
+    ENDIF.
+
 
   ENDMETHOD.
 ENDCLASS.
