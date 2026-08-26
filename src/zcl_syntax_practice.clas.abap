@@ -75,6 +75,13 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
     CONDENSE outvalue1.
     out->write( | { outvalue1 } is getting converted to  { outvalue2 } | ).
 
+* Conversion Operator
+
+    DATA: cust_name TYPE c LENGTH 30 VALUE 'Shekhar Suman'.
+
+    DATA(str1) = CONV string( cust_name ).
+
+    out->write( | The value is { str1 } and it's type is { cl_abap_typedescr=>describe_by_data( str1 )->type_kind } | ).
 
 
   ENDMETHOD.
