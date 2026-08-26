@@ -87,5 +87,25 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
 
 *    DATA(components) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( 'ZBP_STRUCT' ) )->components.
 
+* Value operator
+
+    TYPES: l_r_tab TYPE RANGE OF STRing.
+    DATA: l_r_tabtype TYPE l_r_tab.
+
+    l_r_tabtype = VALUE #( ( sign = 'I' option = 'EQ' low = 'Hello' )
+                       ( sign = 'I' option = 'GT' low = 'World' ) ).
+
+    LOOP AT l_r_tabtype ASSIGNING FIELD-SYMBOL(<l_fs_tab>).
+        out->write( | { <l_fs_tab>-low } | ).
+    ENDLOOP.
+
+* FOR operator
+
+    DATA(l_i_tablevalues) = VALUE L_r_tab( FOR l_wa_tab IN l_r_tabtype WHERE ( low EQ 'Hello' ) ( l_wa_tab ) ).
+
+    LOOP AT l_i_tablevalues ASSIGNING FIELD-SYMBOL(<l_fs_tablevalues>).
+        out->write( | { <l_fs_tablevalues>-low } | ).
+    ENDLOOP.
+
   ENDMETHOD.
 ENDCLASS.
