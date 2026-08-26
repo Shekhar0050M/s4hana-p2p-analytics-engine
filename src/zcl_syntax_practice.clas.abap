@@ -107,5 +107,18 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
         out->write( | { <l_fs_tablevalues>-low } | ).
     ENDLOOP.
 
+* Reduce operator
+    DATA(l_v_lines) = REDUCE i( init x = 0 FOR l_wa_tab IN l_r_tabtype next x = x + 1 ).
+    out->write( | { l_v_lines } | ).
+
+* Conditional operator
+    DATA(l_v_cond) = COND #( WHEN <l_fs_tablevalues>-low EQ 'Hello'
+                             THEN | It is hello. |
+                             WHEN <l_fs_tablevalues>-low EQ 'World'
+                             THEN | World is ending. |
+                           ).
+
+    out->write( |{ l_v_cond }| ).
+
   ENDMETHOD.
 ENDCLASS.
