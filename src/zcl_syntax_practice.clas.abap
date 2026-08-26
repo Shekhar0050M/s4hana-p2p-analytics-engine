@@ -43,12 +43,12 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
 * 01+practiceCode
 
     SELECT *
-        from i_currency
+        FROM i_currency
         INTO TABLE @DATA(l_i_ekko)
-        UP TO 10 rows.
+        UP TO 10 ROWS.
 
     LOOP AT l_i_ekko ASSIGNING FIELD-SYMBOL(<l_fs_ekko>).
-        out->write( |{ <l_fs_ekko>-Currency } { <l_fs_ekko>-CurrencyISOCode } { <l_fs_ekko>-Decimals } | ).
+      out->write( |{ <l_fs_ekko>-Currency } { <l_fs_ekko>-CurrencyISOCode } { <l_fs_ekko>-Decimals } | ).
     ENDLOOP.
 
 ******************************************************************************************
@@ -57,8 +57,8 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
 
     DATA(idx) = sy-tabix.
     IF line_exists( l_i_ekko[ idx ] ).
-        DATA(wa1) = l_i_ekko[ 1 ].
-        out->write( |{ wa1-Currency } { wa1-CurrencyISOCode }| ).
+      DATA(wa1) = l_i_ekko[ 1 ].
+      out->write( |{ wa1-Currency } { wa1-CurrencyISOCode }| ).
     ENDIF.
 
 * Concatenate of string
@@ -69,7 +69,7 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
 * Alpha formatting
 
     DATA(value1) = '00000012345'.
-    DATA(outvalue1) = | { VALUE1 ALPHA = OUT } |.
+    DATA(outvalue1) = | { value1 ALPHA = OUT } |.
     DATA(outvalue2) = | { outvalue1 ALPHA = IN } |.
 
     CONDENSE outvalue1.
@@ -96,7 +96,7 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
                        ( sign = 'I' option = 'GT' low = 'World' ) ).
 
     LOOP AT l_r_tabtype ASSIGNING FIELD-SYMBOL(<l_fs_tab>).
-        out->write( | { <l_fs_tab>-low } | ).
+      out->write( | { <l_fs_tab>-low } | ).
     ENDLOOP.
 
 * FOR operator
@@ -104,11 +104,11 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
     DATA(l_i_tablevalues) = VALUE L_r_tab( FOR l_wa_tab IN l_r_tabtype WHERE ( low EQ 'Hello' ) ( l_wa_tab ) ).
 
     LOOP AT l_i_tablevalues ASSIGNING FIELD-SYMBOL(<l_fs_tablevalues>).
-        out->write( | { <l_fs_tablevalues>-low } | ).
+      out->write( | { <l_fs_tablevalues>-low } | ).
     ENDLOOP.
 
 * Reduce operator
-    DATA(l_v_lines) = REDUCE i( init x = 0 FOR l_wa_tab IN l_r_tabtype next x = x + 1 ).
+    DATA(l_v_lines) = REDUCE i( INIT x = 0 FOR l_wa_tab IN l_r_tabtype NEXT x = x + 1 ).
     out->write( | { l_v_lines } | ).
 
 * Conditional operator
@@ -119,6 +119,37 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
                            ).
 
     out->write( |{ l_v_cond }| ).
+
+* Corresponding Operator
+
+    TYPES: BEGIN OF l_ty_type,
+             val1 TYPE c LENGTH 2,
+             val2 TYPE c LENGTH 2,
+             val3 TYPE c LENGTH 2,
+           END OF l_ty_type,
+           l_ty_t_type TYPE STANDARD TABLE OF l_ty_type WITH EMPTY KEY.
+    DATA: l_wa_tp1 TYPE l_ty_type,
+          l_wa_tp2 TYPE l_ty_type,
+          l_i_tp   TYPE l_ty_t_type.
+
+    l_wa_tp1-val1 = 'AB'.
+    l_wa_tp1-val2 = 'BC'.
+    l_wa_tp1-val3 = 'CD'.
+
+    l_wa_tp2-val1 = 'EF'.
+    l_wa_tp2-val2 = 'GH'.
+
+    l_i_tp = VALUE l_ty_t_type( ( l_wa_tp1 ) ( l_wa_tp2 ) ).
+
+    DATA(l_i_ftp2) = CORRESPONDING l_ty_t_type( l_i_tp MAPPING val1 = val1 ).
+
+    LOOP AT l_i_ftp2 ASSIGNING FIELD-SYMBOL(<l_fs_ftp2>).
+        out->write( | { <l_fs_ftp2>-val1 } :: { <l_fs_ftp2>-val2 } :: { <l_fs_ftp2>-val3 } | ).
+    ENDLOOP.
+
+    DATA(l_wa_ftp1) = CORRESPONDING l_ty_type( BASE ( l_wa_tp1 ) l_wa_tp2 EXCEPT val3 ).
+
+    out->write( | { l_wa_ftp1-val1 } :: { l_wa_ftp1-val2 } :: { l_wa_ftp1-val3 } | ).
 
   ENDMETHOD.
 ENDCLASS.
