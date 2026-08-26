@@ -31,7 +31,7 @@ composition [0..*] of ZI_PoItem as _POItem
           else 'STANDARD'
         end as order_tier,
         
-        cast( get_numeric_value( total_amount ) / 10 as abap.dec( 13, 2 ) ) as discount_amount,
+        cast( get_numeric_value( total_amount ) / 10 as abap.dec( 13, 2 ) ) * cast( 0.1 as abap.dec( 3, 2 ) ) as discount_amount,
         
         created_at,
         
