@@ -61,6 +61,21 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
         out->write( |{ wa1-Currency } { wa1-CurrencyISOCode }| ).
     ENDIF.
 
+* Concatenate of string
+
+    DATA(l_v_string) = |Sample String concatenate | && wa1-Currency && | The return code is { sy-subrc } |.
+    out->write( l_v_string ).
+
+* Alpha formatting
+
+    DATA(value1) = '00000012345'.
+    DATA(outvalue1) = | { VALUE1 ALPHA = OUT } |.
+    DATA(outvalue2) = | { outvalue1 ALPHA = IN } |.
+
+    CONDENSE outvalue1.
+    out->write( | { outvalue1 } is getting converted to  { outvalue2 } | ).
+
+
 
   ENDMETHOD.
 ENDCLASS.
