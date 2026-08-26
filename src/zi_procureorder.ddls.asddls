@@ -17,6 +17,22 @@ composition [0..*] of ZI_PoItem as _POItem
         total_amount,
         currency_code,
         status,
+        
+        case status
+          when 'A' then 'Approved'
+          when 'N' then 'New / Pending'
+          when 'R' then 'Rejected'
+          else 'Unknown Status'
+        end as status_text,
+        
+        case 
+          when total_amount >= 50000.00 then 'HIGH VALUE'
+          when total_amount between 10000.00 and 49999.99 then 'MEDIUM VALUE'
+          else 'STANDARD'
+        end as order_tier,
+        
+        cast( get_numeric_value( total_amount ) / 10 as abap.dec( 13, 2 ) ) as discount_amount,
+        
         created_at,
         
         _POItem
