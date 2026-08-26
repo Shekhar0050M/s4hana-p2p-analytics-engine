@@ -13,6 +13,11 @@ composition [0..*] of ZI_PoItem as _POItem
 {
     key po_id,
         vendor_name,
+        
+        upper( vendor_name ) as vendor_name_upper,
+        
+        concat_with_space( po_id, vendor_name, 1 ) as po_summary_string,
+        
         @Semantics.amount.currencyCode: 'currency_code'
         total_amount,
         currency_code,
