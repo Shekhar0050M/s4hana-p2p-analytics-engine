@@ -3,11 +3,11 @@
 {
 "FROM":
 [
-"ZTB_PO_HDR"
+"ZTB_PO_ITEM"
 ],
 "ASSOCIATED":
 [
-"ZI_POITEM"
+"ZI_PROCUREORDER"
 ],
 "BASE":
 [],
