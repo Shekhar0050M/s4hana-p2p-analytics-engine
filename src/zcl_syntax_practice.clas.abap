@@ -144,12 +144,27 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
     DATA(l_i_ftp2) = CORRESPONDING l_ty_t_type( l_i_tp MAPPING val1 = val1 ).
 
     LOOP AT l_i_ftp2 ASSIGNING FIELD-SYMBOL(<l_fs_ftp2>).
-        out->write( | { <l_fs_ftp2>-val1 } :: { <l_fs_ftp2>-val2 } :: { <l_fs_ftp2>-val3 } | ).
+      out->write( | { <l_fs_ftp2>-val1 } :: { <l_fs_ftp2>-val2 } :: { <l_fs_ftp2>-val3 } | ).
     ENDLOOP.
 
     DATA(l_wa_ftp1) = CORRESPONDING l_ty_type( BASE ( l_wa_tp1 ) l_wa_tp2 EXCEPT val3 ).
 
     out->write( | { l_wa_ftp1-val1 } :: { l_wa_ftp1-val2 } :: { l_wa_ftp1-val3 } | ).
 
+* Object creation using new syntax
+
+    DATA: l_o_obj TYPE REF TO zcl_0001_flight.
+    TRY.
+        l_o_obj = NEW #( carrier_id = 'AA'
+                         connection_id = '0017'
+                         plane_type = '747-400' ).
+        DATA(l_o_obj2) = NEW zcl_0001_flight( carrier_id = 'AA'
+                         connection_id = '0017'
+                         plane_type = '747-400' ).
+        NEW zcl_0001_flight( carrier_id = 'AA'
+                         connection_id = '0017'
+                         plane_type = '747-400' ).
+      CATCH cx_root.
+    ENDTRY.
   ENDMETHOD.
 ENDCLASS.
