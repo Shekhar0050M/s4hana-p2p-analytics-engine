@@ -83,6 +83,9 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
 
     out->write( | The value is { str1 } and it's type is { cl_abap_typedescr=>describe_by_data( str1 )->type_kind } | ).
 
+* Casting
+
+*    DATA(components) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( 'ZBP_STRUCT' ) )->components.
 
   ENDMETHOD.
 ENDCLASS.
