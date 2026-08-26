@@ -166,5 +166,15 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
                          plane_type = '747-400' ).
       CATCH cx_root.
     ENDTRY.
+
+* Select statement for modern abap
+
+*    SELECT FROM i_table
+*    FIELDS field1,
+*           field2,
+*           field3
+*    INTO TABLE @DATA(l_i_table)
+*    UP TO 10 ROWS.
+
   ENDMETHOD.
 ENDCLASS.
