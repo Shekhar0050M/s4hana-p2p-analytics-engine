@@ -1,5 +1,5 @@
 @AccessControl.authorizationCheck: #NOT_REQUIRED
-@EndUserText.label: 'Consumption view for Purchase Order'
+@EndUserText.label: 'Composite view for Purchase Order'
 @Metadata.ignorePropagatedAnnotations: true
 
 define root view entity ZI_ProcureOrderComp
