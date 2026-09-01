@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <DDLS>
-    <DDLNAME>ZC_PROCUREORDER</DDLNAME>
+    <DDLNAME>ZC_POITEM01</DDLNAME>
     <DDLANGUAGE>E</DDLANGUAGE>
-    <DDTEXT>Consumption view for Purchase Order</DDTEXT>
+    <DDTEXT>Consumption view for Purchase Items</DDTEXT>
     <SOURCE_TYPE>P</SOURCE_TYPE>
    </DDLS>
   </asx:values>

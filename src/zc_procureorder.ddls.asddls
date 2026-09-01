@@ -1,7 +1,7 @@
 @AccessControl.authorizationCheck: #NOT_REQUIRED
 @EndUserText.label: 'Consumption view for Purchase Order'
 @Metadata.ignorePropagatedAnnotations: true
-
+@Metadata.allowExtensions: true
 @Search.searchable: true
 
 @UI.headerInfo: {
@@ -11,10 +11,11 @@
     description: { type: #STANDARD, value: 'vendor_name' }
 }
 
-define root view entity ZC_ProcureOrder 
-as select from ZI_ProcureOrderComp
+define root view entity ZC_ProcureOrder
+  provider contract transactional_query
+  as projection on ZI_ProcureOrderComp
 {
-    @UI.facet: [
+  @UI.facet: [
     { id: 'HeaderDetails', purpose: #STANDARD, type: #IDENTIFICATION_REFERENCE, label: 'General Information', position: 10 },
     { id: 'Financials',    purpose: #STANDARD, type: #FIELDGROUP_REFERENCE, targetQualifier: 'FinancialGroup', label: 'Financial Details', position: 20 },
     { id: 'ItemDetails',   purpose: #STANDARD, type: #LINEITEM_REFERENCE, label: 'Line Items', position: 30, targetElement: '_POItem' },
@@ -65,7 +66,7 @@ as select from ZI_ProcureOrderComp
   @UI.lineItem: [{ position: 90, label: 'Created At' }]
   created_at,
 
-  // Expose child composition for the object page line items table
-  _POItem,
+  /* Associations – this is the critical part */
+  _POItem: redirected to composition child ZC_PoItem01,
   _VendorAnalytics
 }
