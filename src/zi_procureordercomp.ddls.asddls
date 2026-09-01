@@ -5,7 +5,7 @@
 define root view entity ZI_ProcureOrderComp
   as select from ZI_ProcureOrder
   composition [0..*] of ZI_PoItem as _POItem
-  association [1..1] to ZC_VendorAnalytics as _VendorAnalytics on $projection.po_id = _VendorAnalytics.vendor_id
+  association [0..1] to ZC_VendorAnalytics as _VendorAnalytics on $projection.po_id = _VendorAnalytics.vendor_id
 {
 
   key po_id,

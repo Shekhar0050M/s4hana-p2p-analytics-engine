@@ -19,7 +19,7 @@ define root view entity ZC_ProcureOrder
     { id: 'HeaderDetails', purpose: #STANDARD, type: #IDENTIFICATION_REFERENCE, label: 'General Information', position: 10 },
     { id: 'Financials',    purpose: #STANDARD, type: #FIELDGROUP_REFERENCE, targetQualifier: 'FinancialGroup', label: 'Financial Details', position: 20 },
     { id: 'ItemDetails',   purpose: #STANDARD, type: #LINEITEM_REFERENCE, label: 'Line Items', position: 30, targetElement: '_POItem' },
-    { id: 'VendorAnalytics', purpose: #STANDARD, type: #LINEITEM_REFERENCE, label: 'Vendor Spend & Risk', position: 40, targetElement: '_VendorAnalytics' }
+    { id: 'VendorAnalytics', purpose: #STANDARD, type: #IDENTIFICATION_REFERENCE, label: 'Vendor Spend & Risk', position: 40, targetElement: '_VendorAnalytics' }
   ]
 
   @UI.lineItem: [{ position: 10, label: 'Purchase Order ID' }]
