@@ -2,7 +2,7 @@
 @AccessControl.authorizationCheck: #NOT_REQUIRED
 @EndUserText.label: 'Interface View Wrapper Vendor Analytics'
 @Metadata.ignorePropagatedAnnotations: true
-define view entity ZI_VendorAnalytics as select from ZTF_VendorAnalytics( input_parameter: 1 )
+define view entity ZI_VendorAnalytics as select from ZTF_VendorAnalytics
 {
     key vendor_id,
     @Semantics.amount.currencyCode: 'currency_code'

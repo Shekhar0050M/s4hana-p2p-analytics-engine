@@ -3,14 +3,12 @@
 @AccessControl.authorizationCheck: #NOT_REQUIRED
 @EndUserText.label: 'Vendor Spend Analytics & Risk Scoring'
 define table function ZTF_VendorAnalytics
-  with parameters
-    input_parameter : abap.int4
 returns
 {
   client        : abap.clnt;
-  vendor_id     : abap.char(10);
+  vendor_id         : abap.char(10);
   total_spend   : abap.curr(15,2);
-  currency_code : abap.cuky; 
+  currency_code : abap.cuky;
   order_count   : abap.int4;
   risk_category : abap.char(10);
 
