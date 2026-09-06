@@ -1,0 +1,26 @@
+managed implementation in class zbp_i_procureordercomp unique;
+strict ( 2 );
+
+define behavior for ZI_ProcureOrderComp alias PurchaseOrder
+persistent table ztb_po_hdr
+lock master
+authorization master ( global )
+etag master created_at
+{
+  create ( authorization : global );
+  update;
+  delete;
+  field ( readonly ) po_id;
+  association _POItem { create; }
+}
+
+define behavior for ZI_PoItem alias POItem
+persistent table ztb_po_item
+lock dependent by _ProcureOrderComp
+authorization dependent by _ProcureOrderComp
+{
+  update;
+  delete;
+  field ( readonly ) po_id, item_id;
+  association _ProcureOrderComp;
+}

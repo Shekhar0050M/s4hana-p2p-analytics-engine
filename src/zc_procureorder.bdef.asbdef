@@ -1,0 +1,19 @@
+projection;
+strict ( 2 );
+
+define behavior for ZC_ProcureOrder alias PurchaseOrder
+{
+  use create;
+  use update;
+  use delete;
+
+  use association _POItem { create; }
+}
+
+define behavior for ZC_PoItem01 alias POItem
+{
+  use update;
+  use delete;
+
+  use association _ProcureOrderComp;
+}
