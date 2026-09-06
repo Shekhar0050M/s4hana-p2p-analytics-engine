@@ -1,26 +1,36 @@
 managed implementation in class zbp_i_procureordercomp unique;
-strict ( 2 );
+//strict ( 2 );
+with draft;
 
 define behavior for ZI_ProcureOrderComp alias PurchaseOrder
 persistent table ztb_po_hdr
+draft table zdt_po_hdr_d
 lock master
-authorization master ( global )
+total etag created_at
+//authorization master ( global )
 etag master created_at
 {
   create ( authorization : global );
   update;
   delete;
   field ( readonly ) po_id;
-  association _POItem { create; }
+  association _POItem { create; with draft; }
+
+  draft action Edit;
+  draft action Activate;
+  draft action Discard;
+  draft action Resume;
+  draft determine action Prepare;
 }
 
 define behavior for ZI_PoItem alias POItem
 persistent table ztb_po_item
+draft table zdt_po_item_d
 lock dependent by _ProcureOrderComp
-authorization dependent by _ProcureOrderComp
+//authorization dependent by _ProcureOrderComp
 {
   update;
   delete;
   field ( readonly ) po_id, item_id;
-  association _ProcureOrderComp;
+  association _ProcureOrderComp { with draft; }
 }

@@ -1,5 +1,6 @@
 projection;
-strict ( 2 );
+use draft;
+//strict ( 2 );
 
 define behavior for ZC_ProcureOrder alias PurchaseOrder
 {
@@ -7,7 +8,7 @@ define behavior for ZC_ProcureOrder alias PurchaseOrder
   use update;
   use delete;
 
-  use association _POItem { create; }
+  use association _POItem { create; with draft; }
 }
 
 define behavior for ZC_PoItem01 alias POItem
@@ -15,5 +16,5 @@ define behavior for ZC_PoItem01 alias POItem
   use update;
   use delete;
 
-  use association _ProcureOrderComp;
+  use association _ProcureOrderComp { with draft; }
 }
