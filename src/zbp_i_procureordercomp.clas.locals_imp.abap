@@ -6,8 +6,10 @@ CLASS lhc_PurchaseOrder DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS SetInitialStatus FOR DETERMINE ON SAVE
       IMPORTING keys FOR PurchaseOrder~SetInitialStatus.
+
     METHODS ValidateTotalAmount FOR VALIDATE ON SAVE
       IMPORTING keys FOR PurchaseOrder~ValidateTotalAmount.
+
     METHODS setComplete FOR MODIFY
       IMPORTING keys FOR ACTION PurchaseOrder~setComplete RESULT result.
 
