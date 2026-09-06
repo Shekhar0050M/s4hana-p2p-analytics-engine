@@ -16,6 +16,8 @@ etag master created_at
   field ( readonly ) po_id;
   association _POItem { create; with draft; }
 
+  determination SetInitialStatus on save { create; }
+
   draft action Edit;
   draft action Activate;
   draft action Discard;
