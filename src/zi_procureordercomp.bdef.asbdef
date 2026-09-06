@@ -1,5 +1,5 @@
 managed implementation in class zbp_i_procureordercomp unique;
-//strict ( 2 );
+strict ( 2 );
 with draft;
 
 define behavior for ZI_ProcureOrderComp alias PurchaseOrder
@@ -7,29 +7,52 @@ persistent table ztb_po_hdr
 draft table zdt_po_hdr_d
 lock master
 total etag created_at
-//authorization master ( global )
+authorization master ( global )
 etag master created_at
 {
   create ( authorization : global );
   update;
   delete;
-  field ( readonly ) po_id;
+
+  field ( readonly )
+    po_id,
+    vendor_name_upper,
+    po_summary_string,
+    status_text,
+    order_tier,
+    discount_amount;
+
   association _POItem { create; with draft; }
 
   determination SetInitialStatus on save { create; }
+  validation ValidateTotalAmount on save { create; update; }
+  action setComplete result [1] $self;
 
   draft action Edit;
-  draft action Activate;
+  draft action Activate optimized;
   draft action Discard;
   draft action Resume;
-  draft determine action Prepare;
+  draft determine action Prepare{
+    validation ValidateTotalAmount;
+  }
+
+  mapping for ztb_po_hdr
+  {
+    po_id         = po_id;
+    vendor_name   = vendor_name;
+    total_amount  = total_amount;
+    currency_code = currency_code;
+    status        = status;
+    created_at    = created_at;
+  }
+
 }
 
 define behavior for ZI_PoItem alias POItem
 persistent table ztb_po_item
 draft table zdt_po_item_d
 lock dependent by _ProcureOrderComp
-//authorization dependent by _ProcureOrderComp
+authorization dependent by _ProcureOrderComp
 {
   update;
   delete;

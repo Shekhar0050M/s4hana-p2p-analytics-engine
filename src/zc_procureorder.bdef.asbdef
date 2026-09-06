@@ -9,6 +9,8 @@ define behavior for ZC_ProcureOrder alias PurchaseOrder
   use delete;
 
   use association _POItem { create; with draft; }
+
+  use action setComplete;
 }
 
 define behavior for ZC_PoItem01 alias POItem

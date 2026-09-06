@@ -48,8 +48,9 @@ define root view entity ZC_ProcureOrder
   currency_code,
 
   @UI.lineItem: [{ position: 50, label: 'Status' }]
-  @UI.identification: [{ position: 50, label: 'Status Code' }]
-  @UI.selectionField: [{ position: 30 }]
+  @UI.identification: [{ position: 50, label: 'Status Code' }, 
+                       { type: #FOR_ACTION, dataAction: 'setComplete', label: 'Set Complete' } ]
+  @UI.selectionField: [{ position: 30 }] 
   status,
 
   @UI.lineItem: [{ position: 60, label: 'Status Description' }]

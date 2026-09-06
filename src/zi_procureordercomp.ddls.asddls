@@ -24,6 +24,7 @@ define root view entity ZI_ProcureOrderComp
         when 'A' then 'Approved'
         when 'N' then 'New / Pending'
         when 'R' then 'Rejected'
+        when 'C' then 'Completed'
         else 'Unknown Status'
       end                                                                                                   as status_text,
 

@@ -6,7 +6,7 @@ define table function ZTF_VendorAnalytics
 returns
 {
   client        : abap.clnt;
-  vendor_id         : abap.char(10);
+  vendor_id     : abap.char(10);
   total_spend   : abap.curr(15,2);
   currency_code : abap.cuky;
   order_count   : abap.int4;
