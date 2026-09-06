@@ -27,6 +27,14 @@ Package (DEVC)
     │   ├── redirected composition child → ZC_PoItem01
     │   └── association → _VendorAnalytics
     └── ZC_PoItem01                  (Item Projection)
+└── RAP Behavior Layer (NEW – Sep 2026)
+    ├── ZI_ProcureOrderComp (BDEF)   managed + draft + determination + validation + action
+    │   └── implemented by ZBP_I_PROCUREORDERCOMP
+    ├── ZC_ProcureOrder (BDEF Projection)
+    ├── Draft Tables
+    │   ├── ZDT_PO_HDR_D
+    │   └── ZDT_PO_ITEM_D
+    └── UI Action button “Set Complete” on status field
 └── Service Layer
     └── ZUI_PROCUREORDER_O2          (OData V4 Service Definition)
 └── Learning / Practice
@@ -40,7 +48,8 @@ Package (DEVC)
 3. **Composite** → `ZI_ProcureOrderComp` adds calculated fields + defines the BO hierarchy via **composition**
 4. **Analytics** → AMDP runs SQLScript on HANA, aggregates spend & risk, exposed via Table Function
 5. **Consumption** → `ZC_*` projections add UI annotations, facets, search, and redirect associations for the Fiori Elements / RAP UI
-6. **Service** → OData V4 service exposes the root + child entities
+6. **RAP Behavior** → Managed BO with draft, determination (default status), validation (amount > 0), and custom action `setComplete`
+7. **Service** → OData V4 service exposes the root + child entities + transactional operations
 
 ## Key Design Patterns Used
 
@@ -51,6 +60,8 @@ Package (DEVC)
 | **AMDP Table Function** | `ZTF_VendorAnalytics` + AMDP class | Heavy analytics logic pushed to HANA database layer |
 | **Association to Analytics** | From composite to `ZC_VendorAnalytics` | Allows side-panel / facet showing vendor risk without changing BO |
 | **UI Annotations + Facets** | Consumption views | Zero-code Fiori Elements List Report + Object Page |
+| **Managed RAP + Draft** | BDEF + Implementation class | Full transactional BO with Edit/Activate/Discard |
+| **Determination / Validation / Action** | Behavior Implementation | Default values, business rules, custom operations |
 
 ## How to use these notes
 
