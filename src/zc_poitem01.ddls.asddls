@@ -6,6 +6,7 @@
 define view entity ZC_PoItem01
   as projection on ZI_PoItem
 {
+  @UI.lineItem: [{ position: 1, label: 'Purchase Order ID' }]
   key po_id,
 
   @UI.lineItem: [{ position: 10, label: 'Item' }]

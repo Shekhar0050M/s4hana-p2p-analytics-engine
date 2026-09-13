@@ -1,7 +1,7 @@
 @AccessControl.authorizationCheck: #NOT_REQUIRED
 @EndUserText.label: 'Consumption view for Purchase Order'
 @Metadata.ignorePropagatedAnnotations: true
-@Metadata.allowExtensions: true
+//@Metadata.allowExtensions: true
 @Search.searchable: true
 
 @UI.headerInfo: {
@@ -22,14 +22,16 @@ define root view entity ZC_ProcureOrder
     { id: 'VendorAnalytics', purpose: #STANDARD, type: #IDENTIFICATION_REFERENCE, label: 'Vendor Spend & Risk', position: 40, targetElement: '_VendorAnalytics' }
   ]
 
-  @UI.lineItem: [{ position: 10, label: 'Purchase Order ID' }]
-  @UI.identification: [{ position: 10, label: 'Purchase Order ID' }]
-  @UI.selectionField: [{ position: 10 }]
+  @EndUserText.label: 'Purchase Order ID'
+  @UI.lineItem: [{ position: 10 }]
+  @UI.identification: [{ position: 10 }]
   @Search.defaultSearchElement: true
+  @UI.selectionField: [{ position: 10 }]
   key po_id,
 
-  @UI.lineItem: [{ position: 20, label: 'Vendor Name' }]
-  @UI.identification: [{ position: 20, label: 'Vendor Name' }]
+  @EndUserText.label: 'Vendor Name'
+  @UI.lineItem: [{ position: 20 }]
+  @UI.identification: [{ position: 20 }]
   @UI.selectionField: [{ position: 20 }]
   @Search.defaultSearchElement: true
   vendor_name,
@@ -37,34 +39,41 @@ define root view entity ZC_ProcureOrder
   vendor_name_upper,
   po_summary_string,
 
+  @EndUserText.label: 'Total Amount'
   @Semantics.amount.currencyCode: 'currency_code'
-  @UI.lineItem: [{ position: 30, label: 'Total Amount' }]
-  @UI.identification: [{ position: 30, label: 'Total Amount' }]
-  @UI.fieldGroup: [{ qualifier: 'FinancialGroup', position: 10, label: 'Total Amount' }]
+  @UI.lineItem: [{ position: 30 }]
+  @UI.identification: [{ position: 30 }]
+  @UI.fieldGroup: [{ qualifier: 'FinancialGroup', position: 10 }]
   total_amount,
 
-  @UI.lineItem: [{ position: 40, label: 'Currency' }]
-  @UI.fieldGroup: [{ qualifier: 'FinancialGroup', position: 20, label: 'Currency' }]
+  @EndUserText.label: 'Currency'
+  @UI.lineItem: [{ position: 40 }]
+  @UI.fieldGroup: [{ qualifier: 'FinancialGroup', position: 20 }]
   currency_code,
 
-  @UI.lineItem: [{ position: 50, label: 'Status' }]
-  @UI.identification: [{ position: 50, label: 'Status Code' }, 
+  @EndUserText.label: 'Status'
+  @UI.lineItem: [{ position: 50 }]
+  @UI.identification: [{ position: 50 }, 
                        { type: #FOR_ACTION, dataAction: 'setComplete', label: 'Set Complete' } ]
   @UI.selectionField: [{ position: 30 }] 
   status,
 
-  @UI.lineItem: [{ position: 60, label: 'Status Description' }]
+  @EndUserText.label: 'Status Description'
+  @UI.lineItem: [{ position: 60 }]
   status_text,
 
-  @UI.lineItem: [{ position: 70, label: 'Order Tier' }]
+  @EndUserText.label: 'Order Tier'
+  @UI.lineItem: [{ position: 70 }]
   order_tier,
 
+  @EndUserText.label: 'Discount Amount'
   @Semantics.amount.currencyCode: 'currency_code'
-  @UI.lineItem: [{ position: 80, label: 'Discount Amount' }]
-  @UI.fieldGroup: [{ qualifier: 'FinancialGroup', position: 30, label: 'Calculated Discount' }]
+  @UI.lineItem: [{ position: 80 }]
+  @UI.fieldGroup: [{ qualifier: 'FinancialGroup', position: 30 }]
   discount_amount,
 
-  @UI.lineItem: [{ position: 90, label: 'Created At' }]
+  @EndUserText.label: 'Created At'
+  @UI.lineItem: [{ position: 90 }]
   created_at,
 
   /* Associations – this is the critical part */
