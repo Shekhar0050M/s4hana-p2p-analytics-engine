@@ -1,0 +1,32 @@
+{
+  "generationParameters": {
+    "generationDate": "Sun Sep 13 2026 12:49:54 GMT+0000 (Coordinated Universal Time)",
+    "generatorPlatform": "SAP Business Application Studio",
+    "serviceType": "OData URL",
+    "metadataFilename": "",
+    "serviceUrl": "https://a4796127-12c7-4a21-ae82-e3ced4ab9c3d.abap.us10.hana.ondemand.com/sap/opu/odata/sap/ZUI_PROCUREORDER_O2",
+    "appName": "procureorderanalysis",
+    "appTitle": "Procure Order Analytics",
+    "appDescription": "Analytical List Page for Procure Order Analytics",
+    "appNamespace": "com.procure",
+    "ui5Theme": "sap_horizon",
+    "ui5Version": "1.148.9",
+    "enableEslint": true,
+    "enableTypeScript": false,
+    "showMockDataInfo": true,
+    "generatorVersion": "1.32.0",
+    "template": "List Report Page V2",
+    "generatorName": "SAP Fiori Application Generator",
+    "entityRelatedConfig": [
+      {
+        "type": "Main Entity",
+        "value": "PurchaseOrder"
+      },
+      {
+        "type": "Navigation Entity",
+        "value": "None"
+      }
+    ],
+    "launchText": "To launch the generated application, run the following from the generated application root folder:\n\n```\n    npm start\n```"
+  }
+}
