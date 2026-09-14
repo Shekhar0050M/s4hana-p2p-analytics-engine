@@ -1,7 +1,7 @@
 # P2P Analytics Engine – Architecture Overview
 
 **Project**: `s4hana-p2p-analytics-engine`  
-**Description**: Enterprise Procure-to-Pay (P2P) Engine with Analytics built on SAP S/4HANA CDS + AMDP + OData V4.
+**Description**: Enterprise Procure-to-Pay (P2P) Engine with Analytics built on SAP S/4HANA CDS + AMDP + OData V4 + Fiori Elements (Chart & KPI).
 
 ## High-Level Object Tree
 
@@ -25,9 +25,12 @@ Package (DEVC)
 └── Consumption / UI Projection Layer
     ├── ZC_ProcureOrder              (Root Projection – transactional_query)
     │   ├── redirected composition child → ZC_PoItem01
-    │   └── association → _VendorAnalytics
+    │   ├── association → _VendorAnalytics
+    │   ├── @UI.chart #POByStatus          (Column chart by status)
+    │   ├── @UI.presentationVariant        (ChartView / TableView)
+    │   └── @UI.dataPoint TotalSpendDataPoint (KPI source)
     └── ZC_PoItem01                  (Item Projection)
-└── RAP Behavior Layer (NEW – Sep 2026)
+└── RAP Behavior Layer
     ├── ZI_ProcureOrderComp (BDEF)   managed + draft + determination + validation + action
     │   └── implemented by ZBP_I_PROCUREORDERCOMP
     ├── ZC_ProcureOrder (BDEF Projection)
@@ -37,6 +40,10 @@ Package (DEVC)
     └── UI Action button “Set Complete” on status field
 └── Service Layer
     └── ZUI_PROCUREORDER_O2          (OData V4 Service Definition)
+└── Fiori Elements App
+    └── app/procureorderanalysis
+        ├── List Report with Chart ↔ Table toggle (quickVariantSelectionX)
+        └── KPI tile “Total Purchase Spend”
 └── Learning / Practice
     └── ZCL_SYNTAX_PRACTICE          (Modern ABAP syntax playground)
 ```
@@ -47,9 +54,10 @@ Package (DEVC)
 2. **Interface** → Simple CDS views (`ZI_*`) expose the tables cleanly
 3. **Composite** → `ZI_ProcureOrderComp` adds calculated fields + defines the BO hierarchy via **composition**
 4. **Analytics** → AMDP runs SQLScript on HANA, aggregates spend & risk, exposed via Table Function
-5. **Consumption** → `ZC_*` projections add UI annotations, facets, search, and redirect associations for the Fiori Elements / RAP UI
+5. **Consumption** → `ZC_*` projections add UI annotations (facets, search, **chart**, **presentation variants**, **DataPoint**) and redirect associations for the Fiori Elements / RAP UI
 6. **RAP Behavior** → Managed BO with draft, determination (default status), validation (amount > 0), and custom action `setComplete`
 7. **Service** → OData V4 service exposes the root + child entities + transactional operations
+8. **Fiori App** → List Report shows KPI tile + Chart/Table toggle driven by annotations + manifest
 
 ## Key Design Patterns Used
 
@@ -62,10 +70,12 @@ Package (DEVC)
 | **UI Annotations + Facets** | Consumption views | Zero-code Fiori Elements List Report + Object Page |
 | **Managed RAP + Draft** | BDEF + Implementation class | Full transactional BO with Edit/Activate/Discard |
 | **Determination / Validation / Action** | Behavior Implementation | Default values, business rules, custom operations |
+| **@UI.chart + PresentationVariant** | `ZC_ProcureOrder` | Declarative Chart view alongside Table on the same List Report |
+| **@UI.dataPoint + KPI in manifest** | `total_amount` + `manifest.json` | KPI tile without custom UI5 code |
 
 ## How to use these notes
 
-Each Markdown file corresponds to **one ABAP object**.  
+Each Markdown file corresponds to **one ABAP object** (or a focused change set).  
 Inside every file you will find:
 
 - Purpose
@@ -74,3 +84,7 @@ Inside every file you will find:
 - Linked objects (the tree edges)
 
 Start reading from the bottom of the stack (tables) and move upwards, or jump via the links.
+
+**Latest notes for recent work**:
+- [[19-RAP-Changes-Summary]] – RAP Behavior, Draft, Determination, Validation, Action
+- [[20-UI-Chart-KPI-Changes]] – Chart, Presentation Variants, DataPoint & KPI tile (Sep 14, 2026)
