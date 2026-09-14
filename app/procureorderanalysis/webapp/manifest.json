@@ -136,6 +136,19 @@
             },
             "tableSettings": {
               "type": "ResponsiveTable"
+            },
+            "quickVariantSelectionX": {
+              "showTablePersonalisation": true,
+              "variants": {
+                "1": {
+                  "key": "ChartView",
+                  "annotationPath": "com.sap.vocabularies.UI.v1.PresentationVariant#ChartView"
+                },
+                "2": {
+                  "key": "TableView",
+                  "annotationPath": "com.sap.vocabularies.UI.v1.PresentationVariant#TableView"
+                }
+              }
             }
           }
         },
