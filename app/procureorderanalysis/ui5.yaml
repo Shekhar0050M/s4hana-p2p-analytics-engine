@@ -18,8 +18,9 @@ server:
         backend:
           - path: /sap
             url: https://a4796127-12c7-4a21-ae82-e3ced4ab9c3d.abap.us10.hana.ondemand.com
-            client: '100'
-            destination: ABAP_Trial
+            # client: '100'
+            # destination: ABAP_Trial
+            authenticationType: reentranceTicket # SAML support for vscode
     - name: fiori-tools-appreload
       afterMiddleware: compression
       configuration:
