@@ -1,3 +1,50 @@
+CLASS lhc_poitem DEFINITION INHERITING FROM cl_abap_behavior_handler.
+
+  PRIVATE SECTION.
+
+    METHODS CalculateTotalAmount FOR DETERMINE ON MODIFY
+      keys FOR POItem~CalculateTotalAmount.
+
+ENDCLASS.
+
+CLASS lhc_poitem IMPLEMENTATION.
+
+  METHOD CalculateTotalAmount.
+    READ ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+      ENTITY POItem BY \_ProcureOrderComp
+      FROM CORRESPONDING #( keys )
+      RESULT DATA(lt_purchase_orders).
+
+    CHECK lt_purchase_orders IS NOT INITIAL.
+
+    READ ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+      ENTITY PurchaseOrder BY \_POItem
+      FROM CORRESPONDING #( lt_purchase_orders )
+      RESULT DATA(lt_all_items).
+
+    DATA: lt_header_updates TYPE TABLE FOR UPDATE ZI_ProcureOrderComp.
+
+    LOOP AT lt_purchase_orders INTO DATA(ls_po).
+      DATA(lv_total_amount) = 0.
+
+      LOOP AT lt_all_items INTO DATA(ls_item) WHERE po_id = ls_po-po_id.
+        lv_total_amount = lv_total_amount + ls_item-net_amount.
+      ENDLOOP.
+
+      APPEND VALUE #(
+        po_id        = ls_po-po_id
+        total_amount = lv_total_amount
+      ) TO lt_header_updates.
+    ENDLOOP.
+
+    MODIFY ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+      ENTITY PurchaseOrder
+      UPDATE FIELDS ( total_amount )
+      WITH lt_header_updates.
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS lhc_PurchaseOrder DEFINITION INHERITING FROM cl_abap_behavior_handler.
   PRIVATE SECTION.
 

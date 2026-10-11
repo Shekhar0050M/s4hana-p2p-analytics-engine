@@ -6,22 +6,30 @@
 define view entity ZC_PoItem01
   as projection on ZI_PoItem
 {
-  @UI.lineItem: [{ position: 1, label: 'Purchase Order ID' }]
+      @UI.lineItem: [{ position: 1, label: 'Purchase Order ID' }]
   key po_id,
 
-  @UI.lineItem: [{ position: 10, label: 'Item' }]
+      @UI.lineItem: [{ position: 10, label: 'Item' }]
   key item_id,
 
-  @UI.lineItem: [{ position: 20, label: 'Material' }]
-  material,
+      @UI.lineItem: [{ position: 20, label: 'Material' }]
+      material,
 
-  @Semantics.quantity.unitOfMeasure: 'unit'
-  @UI.lineItem: [{ position: 30, label: 'Quantity' }]
-  quantity,
+      @Semantics.quantity.unitOfMeasure: 'unit'
+      @UI.lineItem: [{ position: 30, label: 'Quantity' }]
+      quantity,
 
-  @UI.lineItem: [{ position: 40, label: 'Unit' }]
-  unit,
+      @UI.lineItem: [{ position: 40, label: 'Unit' }]
+      unit,
 
-  /* MUST point to the parent projection */
-  _ProcureOrderComp: redirected to parent ZC_ProcureOrder
+      @UI.lineItem: [{ position: 40, label: 'Currency' }]
+      currency_code,
+
+      @EndUserText.label: 'Net Amount'
+      @UI.lineItem: [{ position: 60 }]
+      @Semantics.amount.currencyCode: 'currency_code'
+      net_amount,
+
+      /* MUST point to the parent projection */
+      _ProcureOrderComp : redirected to parent ZC_ProcureOrder
 }

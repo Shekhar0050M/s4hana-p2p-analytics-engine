@@ -59,4 +59,17 @@ authorization dependent by _ProcureOrderComp
   delete;
   field ( readonly ) po_id, item_id;
   association _ProcureOrderComp { with draft; }
+
+  determination CalculateTotalAmount on modify { create; update; delete; field net_amount, quantity; }
+
+  mapping for ztb_po_item
+  {
+    po_id       = po_id;
+    item_id     = item_id;
+    material    = material;
+    quantity    = quantity;
+    unit        = unit;
+    net_amount  = net_amount;
+  }
+
 }
