@@ -7,6 +7,7 @@ define view entity ZI_ProcureOrder
   as select from ztb_po_hdr
 {
   key po_id,
+      vendor_id,
       vendor_name,
       
       @Semantics.amount.currencyCode: 'currency_code'

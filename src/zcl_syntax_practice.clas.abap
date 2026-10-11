@@ -176,6 +176,5 @@ CLASS zcl_syntax_practice IMPLEMENTATION.
 **    INTO TABLE @DATA(l_i_table)
 **    UP TO 10 ROWS.
 
-
   ENDMETHOD.
 ENDCLASS.

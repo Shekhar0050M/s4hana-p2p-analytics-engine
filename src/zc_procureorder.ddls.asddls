@@ -45,7 +45,8 @@ define root view entity ZC_ProcureOrder
         { id: 'HeaderDetails', purpose: #STANDARD, type: #IDENTIFICATION_REFERENCE, label: 'General Information', position: 10 },
         { id: 'Financials',    purpose: #STANDARD, type: #FIELDGROUP_REFERENCE, targetQualifier: 'FinancialGroup', label: 'Financial Details', position: 20 },
         { id: 'ItemDetails',   purpose: #STANDARD, type: #LINEITEM_REFERENCE, label: 'Line Items', position: 30, targetElement: '_POItem' },
-        { id: 'VendorAnalytics', purpose: #STANDARD, type: #IDENTIFICATION_REFERENCE, label: 'Vendor Spend & Risk', position: 40, targetElement: '_VendorAnalytics' }
+        { id: 'VendorAnalytics', purpose: #STANDARD, type: #IDENTIFICATION_REFERENCE, label: 'Vendor Spend & Risk', position: 40, targetElement: '_VendorAnalytics' },
+        { id: 'VendorDetails', purpose: #STANDARD, type: #FIELDGROUP_REFERENCE, label: 'Vendor Information', position: 50, targetQualifier: 'VendorGroup' }
       ]
 
       @EndUserText.label: 'Purchase Order ID'
@@ -54,6 +55,13 @@ define root view entity ZC_ProcureOrder
       @Search.defaultSearchElement: true
       @UI.selectionField: [{ position: 10 }]
   key po_id,
+
+      @EndUserText.label: 'Vendor ID'
+      @UI.lineItem: [{ position: 15 }]
+      @UI.identification: [{ position: 15 }]
+      @UI.selectionField: [{ position: 15 }]
+      @Search.defaultSearchElement: true
+      vendor_id,
 
       @EndUserText.label: 'Vendor Name'
       @UI.lineItem: [{ position: 20 }]
@@ -106,7 +114,26 @@ define root view entity ZC_ProcureOrder
       @UI.lineItem: [{ position: 90 }]
       created_at,
 
+      @EndUserText.label: 'Vendor Name (from Master)'
+      @UI.fieldGroup: [{ qualifier: 'VendorGroup', position: 10 }]
+      @UI.identification: [{ position: 16 }]
+      _Vendor.vendor_name as VendorNameMaster,
+
+      @EndUserText.label: 'Country'
+      @UI.fieldGroup: [{ qualifier: 'VendorGroup', position: 20 }]
+      _Vendor.country     as VendorCountry,
+
+      @EndUserText.label: 'City'
+      @UI.fieldGroup: [{ qualifier: 'VendorGroup', position: 30 }]
+      _Vendor.city        as VendorCity,
+
+      @EndUserText.label: 'Risk Score'
+      @UI.fieldGroup: [{ qualifier: 'VendorGroup', position: 40 }]
+      _Vendor.risk_score  as VendorRiskScore,
+
       /* Associations – this is the critical part */
       _POItem : redirected to composition child ZC_PoItem01,
-      _VendorAnalytics
+      _VendorAnalytics,
+      _Vendor
+
 }

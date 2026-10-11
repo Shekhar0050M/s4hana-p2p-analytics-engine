@@ -3,4 +3,5 @@ define service ZUI_PROCUREORDER_O2 {
   expose ZC_ProcureOrder    as PurchaseOrder;
   expose ZC_PoItem01        as PurchaseOrderitem;
   expose ZC_VendorAnalytics as VendorAnalytics;
+  expose ZC_Vendor01        as Vendor;
 }
