@@ -3,7 +3,7 @@ CLASS lhc_poitem DEFINITION INHERITING FROM cl_abap_behavior_handler.
   PRIVATE SECTION.
 
     METHODS CalculateTotalAmount FOR DETERMINE ON MODIFY
-      keys FOR POItem~CalculateTotalAmount.
+       keys FOR POItem~CalculateTotalAmount.
 
 ENDCLASS.
 
@@ -12,35 +12,47 @@ CLASS lhc_poitem IMPLEMENTATION.
   METHOD CalculateTotalAmount.
     READ ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
       ENTITY POItem BY \_ProcureOrderComp
-      FROM CORRESPONDING #( keys )
-      RESULT DATA(lt_purchase_orders).
+        FIELDS ( po_id )
+        WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_headers).
 
-    CHECK lt_purchase_orders IS NOT INITIAL.
+    IF lt_headers IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    SORT lt_headers BY po_id.
+    DELETE ADJACENT DUPLICATES FROM lt_headers COMPARING po_id.
 
     READ ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
       ENTITY PurchaseOrder BY \_POItem
-      FROM CORRESPONDING #( lt_purchase_orders )
-      RESULT DATA(lt_all_items).
+        FIELDS ( net_amount )
+        WITH CORRESPONDING #( lt_headers )
+      RESULT DATA(lt_items).
 
-    DATA: lt_header_updates TYPE TABLE FOR UPDATE ZI_ProcureOrderComp.
+    DATA lt_header_update TYPE TABLE FOR UPDATE ZI_ProcureOrderComp\\PurchaseOrder.
 
-    LOOP AT lt_purchase_orders INTO DATA(ls_po).
-      DATA(lv_total_amount) = 0.
+    LOOP AT lt_headers INTO DATA(ls_header).
+      DATA(lv_total) = VALUE ztb_po_hdr-total_amount( ).
 
-      LOOP AT lt_all_items INTO DATA(ls_item) WHERE po_id = ls_po-po_id.
-        lv_total_amount = lv_total_amount + ls_item-net_amount.
+      LOOP AT lt_items INTO DATA(ls_item) WHERE po_id = ls_header-po_id.
+        lv_total = lv_total + ls_item-net_amount.
       ENDLOOP.
 
       APPEND VALUE #(
-        po_id        = ls_po-po_id
-        total_amount = lv_total_amount
-      ) TO lt_header_updates.
+        %tky                  = ls_header-%tky
+        total_amount          = lv_total
+        %control-total_amount = if_abap_behv=>mk-on
+      ) TO lt_header_update.
     ENDLOOP.
 
-    MODIFY ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
-      ENTITY PurchaseOrder
-      UPDATE FIELDS ( total_amount )
-      WITH lt_header_updates.
+    IF lt_header_update IS NOT INITIAL.
+      MODIFY ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+        ENTITY PurchaseOrder
+          UPDATE FIELDS ( total_amount )
+          WITH lt_header_update
+        FAILED DATA(lt_failed)
+        REPORTED DATA(lt_reported).
+    ENDIF.
   ENDMETHOD.
 
 ENDCLASS.
