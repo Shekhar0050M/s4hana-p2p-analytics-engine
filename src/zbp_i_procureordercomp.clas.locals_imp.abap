@@ -60,6 +60,9 @@ ENDCLASS.
 CLASS lhc_PurchaseOrder DEFINITION INHERITING FROM cl_abap_behavior_handler.
   PRIVATE SECTION.
 
+    " Static session counter to prevent draft key collisions
+    CLASS-DATA: gv_max_po TYPE int8.
+
     METHODS get_global_authorizations FOR GLOBAL AUTHORIZATION
       REQUEST requested_authorizations FOR PurchaseOrder RESULT result.
 
@@ -85,6 +88,17 @@ CLASS lhc_PurchaseOrder DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS ValidateVendor FOR VALIDATE ON SAVE
        keys FOR PurchaseOrder~ValidateVendor.
+    METHODS get_instance_features FOR INSTANCE FEATURES
+      keys REQUEST requested_features FOR PurchaseOrder RESULT result.
+
+    METHODS approveOrder FOR MODIFY
+       keys FOR ACTION PurchaseOrder~approveOrder RESULT result.
+
+    METHODS cancelOrder FOR MODIFY
+       keys FOR ACTION PurchaseOrder~cancelOrder RESULT result.
+
+    METHODS rejectOrder FOR MODIFY
+       keys FOR ACTION PurchaseOrder~rejectOrder RESULT result.
 
     METHODS earlynumbering_create FOR NUMBERING
        entities FOR CREATE PurchaseOrder.
@@ -184,29 +198,34 @@ CLASS lhc_PurchaseOrder IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD earlynumbering_create.
-    DATA: lv_max_po TYPE c LENGTH 10.
-    " Determine highest existing PO ID across active database
-    SELECT MAX( po_id ) FROM ztb_po_hdr INTO @lv_max_po.
-    IF lv_max_po IS INITIAL OR lv_max_po < '4500000000'.
-      lv_max_po = '4500000000'.
+    " Initialize sequence once by checking BOTH active table and draft table
+    IF gv_max_po IS INITIAL.
+      DATA: lv_max_act   TYPE c LENGTH 10,
+            lv_max_draft TYPE c LENGTH 10.
+      SELECT MAX( po_id ) FROM ztb_po_hdr INTO @lv_max_act.
+      SELECT MAX( po_id ) FROM zdt_po_hdr_d INTO @lv_max_draft.
+      DATA(lv_highest) = COND #(
+        WHEN lv_max_draft > lv_max_act THEN lv_max_draft
+        ELSE lv_max_act ).
+      IF lv_highest IS INITIAL OR lv_highest < '4500000000'.
+        gv_max_po = 4500000000.
+      ELSE.
+        TRY.
+            gv_max_po = CONV int8( lv_highest ).
+          CATCH cx_root.
+            gv_max_po = 4500000000.
+        ENDTRY.
+      ENDIF.
     ENDIF.
-    " Use 64-bit integer to prevent 32-bit conversion overflow
-    DATA: lv_current_num TYPE int8.
-    TRY.
-        lv_current_num = CONV int8( lv_max_po ).
-      CATCH cx_root.
-        lv_current_num = 4500000000.
-    ENDTRY.
     DATA: lv_new_po TYPE ztb_po_hdr-po_id.
-    " Process EVERY incoming entity to fulfill the RAP framework contract
+    " Assign unique sequential numbers ensuring complete contract mapping
     LOOP AT entities INTO DATA(entity).
       IF entity-po_id IS INITIAL.
-        lv_current_num += 1.
-        lv_new_po = |{ lv_current_num WIDTH = 10 ALIGN = RIGHT PAD = '0' }|.
+        gv_max_po += 1.
+        lv_new_po = |{ gv_max_po WIDTH = 10 ALIGN = RIGHT PAD = '0' }|.
       ELSE.
         lv_new_po = entity-po_id.
       ENDIF.
-      " Contract requires %cid, %key, %is_draft, and the key field
       APPEND VALUE #(
         %cid      = entity-%cid
         %is_draft = entity-%is_draft
@@ -216,6 +235,7 @@ CLASS lhc_PurchaseOrder IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD CalculateOrderTier.
+    "  Dynamic calculation handled by CDS view expressions; determination hook available for side effects
   ENDMETHOD.
 
   METHOD CalculateOrderDefaults.
@@ -327,6 +347,98 @@ CLASS lhc_PurchaseOrder IMPLEMENTATION.
         ) TO reported-purchaseorder.
       ENDIF.
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD get_instance_features.
+
+    READ ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+      ENTITY PurchaseOrder
+        FIELDS ( status )
+        WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_purchase_orders).
+    result = VALUE #(
+      FOR ls_po IN lt_purchase_orders
+      ( %tky = ls_po-%tky
+        " Approve: Enabled only for New/Pending orders ('N')
+        %features-%action-approveOrder = COND #(
+          WHEN ls_po-status = 'N'
+          THEN if_abap_behv=>fc-o-enabled
+          ELSE if_abap_behv=>fc-o-disabled )
+        " Reject: Enabled for New ('N') or Approved ('A') orders
+        %features-%action-rejectOrder = COND #(
+          WHEN ls_po-status = 'N' OR ls_po-status = 'A'
+          THEN if_abap_behv=>fc-o-enabled
+          ELSE if_abap_behv=>fc-o-disabled )
+        " Cancel: Enabled for New ('N') or Approved ('A') orders
+        %features-%action-cancelOrder = COND #(
+          WHEN ls_po-status = 'N' OR ls_po-status = 'A'
+          THEN if_abap_behv=>fc-o-enabled
+          ELSE if_abap_behv=>fc-o-disabled )
+       " Set Complete: Enabled ONLY for Approved orders ('A')
+        %features-%action-setComplete = COND #(
+          WHEN ls_po-status = 'A'
+          THEN if_abap_behv=>fc-o-enabled
+          ELSE if_abap_behv=>fc-o-disabled )
+      )
+    ).
+
+  ENDMETHOD.
+
+  METHOD approveOrder.
+
+    MODIFY ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+      ENTITY PurchaseOrder
+        UPDATE FIELDS ( status )
+        WITH VALUE #( FOR key IN keys ( %tky   = key-%tky
+                                        status = 'A' ) )
+      REPORTED DATA(lt_reported)
+      FAILED DATA(lt_failed).
+    READ ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+      ENTITY PurchaseOrder
+        ALL FIELDS WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_purchase_orders).
+    result = VALUE #( FOR po IN lt_purchase_orders
+                      ( %tky   = po-%tky
+                        %param = po ) ).
+
+  ENDMETHOD.
+
+  METHOD cancelOrder.
+
+    MODIFY ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+      ENTITY PurchaseOrder
+        UPDATE FIELDS ( status )
+        WITH VALUE #( FOR key IN keys ( %tky   = key-%tky
+                                        status = 'X' ) )
+      REPORTED DATA(lt_reported)
+      FAILED DATA(lt_failed).
+    READ ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+      ENTITY PurchaseOrder
+        ALL FIELDS WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_purchase_orders).
+    result = VALUE #( FOR po IN lt_purchase_orders
+                      ( %tky   = po-%tky
+                        %param = po ) ).
+
+  ENDMETHOD.
+
+  METHOD rejectOrder.
+
+    MODIFY ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+      ENTITY PurchaseOrder
+        UPDATE FIELDS ( status )
+        WITH VALUE #( FOR key IN keys ( %tky   = key-%tky
+                                        status = 'R' ) )
+      REPORTED DATA(lt_reported)
+      FAILED DATA(lt_failed).
+    READ ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+      ENTITY PurchaseOrder
+        ALL FIELDS WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_purchase_orders).
+    result = VALUE #( FOR po IN lt_purchase_orders
+                      ( %tky   = po-%tky
+                        %param = po ) ).
 
   ENDMETHOD.
 

@@ -34,7 +34,10 @@ early numbering
   validation ValidateCurrency    on save { field currency_code; create; update; }
   validation ValidateStatus      on save { field status; create; update; }
 
-  action setComplete result [1] $self;
+  action ( features : instance ) setComplete result [1] $self;
+  action ( features : instance ) approveOrder result [1] $self;
+  action ( features : instance ) rejectOrder  result [1] $self;
+  action ( features : instance ) cancelOrder  result [1] $self;
 
   draft action Edit;
   draft action Activate optimized;

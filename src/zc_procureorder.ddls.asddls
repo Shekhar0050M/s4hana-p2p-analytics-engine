@@ -96,9 +96,21 @@ define root view entity ZC_ProcureOrder
       @UI.selectionField: [{ position: 30 }]
       status,
 
-      @EndUserText.label: 'Status Description'
-      @UI.lineItem: [{ position: 60 }]
+      @EndUserText.label: 'Approval Status'
+      @UI.lineItem: [
+        { position: 60 },
+        { type: #FOR_ACTION, dataAction: 'approveOrder', label: 'Approve' },
+        { type: #FOR_ACTION, dataAction: 'rejectOrder',  label: 'Reject' },
+        { type: #FOR_ACTION, dataAction: 'cancelOrder',  label: 'Cancel' },
+        { type: #FOR_ACTION, dataAction: 'setComplete',  label: 'Set Complete' }
+      ]
+      @UI.identification: [
+        { position: 60 } 
+      ]
       status_text,
+      
+      @UI.hidden: true
+      status_criticality,
 
       @EndUserText.label: 'Order Tier'
       @UI.lineItem: [{ position: 70 }]

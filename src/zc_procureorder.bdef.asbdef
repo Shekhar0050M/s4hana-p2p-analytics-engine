@@ -11,6 +11,9 @@ define behavior for ZC_ProcureOrder alias PurchaseOrder
   use association _POItem { create; with draft; }
 
   use action setComplete;
+  use action approveOrder;
+  use action rejectOrder;
+  use action cancelOrder;
 }
 
 define behavior for ZC_PoItem01 alias POItem
