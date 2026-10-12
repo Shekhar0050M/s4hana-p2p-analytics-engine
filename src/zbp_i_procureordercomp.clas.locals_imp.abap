@@ -34,7 +34,7 @@ CLASS lhc_poitem IMPLEMENTATION.
     LOOP AT lt_headers INTO DATA(ls_header).
       DATA(lv_total) = VALUE ztb_po_hdr-total_amount( ).
 
-      LOOP AT lt_items INTO DATA(ls_item) WHERE po_id = ls_header-po_id.
+      LOOP AT lt_items INTO DATA(ls_item) USING KEY entity WHERE po_id = ls_header-po_id.
         lv_total = lv_total + ls_item-net_amount.
       ENDLOOP.
 
@@ -71,6 +71,9 @@ CLASS lhc_PurchaseOrder DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS setComplete FOR MODIFY
       IMPORTING keys FOR ACTION PurchaseOrder~setComplete RESULT result.
+
+    METHODS earlynumbering_create FOR NUMBERING
+      entities FOR CREATE PurchaseOrder.
 
 ENDCLASS.
 
@@ -164,6 +167,38 @@ CLASS lhc_PurchaseOrder IMPLEMENTATION.
                       ( %tky   = po-%tky
                         %param = po ) ).
 
+  ENDMETHOD.
+
+  METHOD earlynumbering_create.
+    DATA: lv_max_po TYPE c LENGTH 10.
+    " Determine highest existing PO ID across active database
+    SELECT MAX( po_id ) FROM ztb_po_hdr INTO @lv_max_po.
+    IF lv_max_po IS INITIAL OR lv_max_po < '4500000000'.
+      lv_max_po = '4500000000'.
+    ENDIF.
+    " Use 64-bit integer to prevent 32-bit conversion overflow
+    DATA: lv_current_num TYPE int8.
+    TRY.
+        lv_current_num = CONV int8( lv_max_po ).
+      CATCH cx_root.
+        lv_current_num = 4500000000.
+    ENDTRY.
+    DATA: lv_new_po TYPE ztb_po_hdr-po_id.
+    " Process EVERY incoming entity to fulfill the RAP framework contract
+    LOOP AT entities INTO DATA(entity).
+      IF entity-po_id IS INITIAL.
+        lv_current_num += 1.
+        lv_new_po = |{ lv_current_num WIDTH = 10 ALIGN = RIGHT PAD = '0' }|.
+      ELSE.
+        lv_new_po = entity-po_id.
+      ENDIF.
+      " Contract requires %cid, %key, %is_draft, and the key field
+      APPEND VALUE #(
+        %cid      = entity-%cid
+        %is_draft = entity-%is_draft
+        po_id     = lv_new_po
+      ) TO mapped-purchaseorder.
+    ENDLOOP.
   ENDMETHOD.
 
 ENDCLASS.
