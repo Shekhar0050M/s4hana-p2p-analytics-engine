@@ -45,6 +45,13 @@ define root view entity ZI_ProcureOrderComp
         when total_amount between 10000.00 and 49999.99 then 'MEDIUM VALUE'
         else 'STANDARD'
       end                                                                                                   as order_tier,
+      
+      case
+        when total_amount >= 50000.00 then 1                    -- 1: Attention / High Exposure (Red)
+        when total_amount between 10000.00 and 49999.99 then 2  -- 2: Medium (Yellow)
+        else 3                                                  -- 3: Standard / Low Risk (Green)
+      end                                                                                                   as order_tier_criticality,
+      
 
       @Semantics.amount.currencyCode: 'currency_code'
       cast( get_numeric_value( total_amount ) / 10 as abap.dec( 13, 2 ) ) * cast( 0.1 as abap.dec( 3, 2 ) ) as discount_amount,

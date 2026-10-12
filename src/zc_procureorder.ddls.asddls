@@ -35,6 +35,11 @@
     qualifier: 'TableView',
     text: 'Table',
     visualizations: [{ type: #AS_LINEITEM }]
+},
+{
+    qualifier: 'TierChartView',
+    text: 'Spend by Tier',
+    visualizations: [{ type: #AS_CHART, qualifier: 'POByTier' }]
 }]
 
 define root view entity ZC_ProcureOrder
@@ -42,6 +47,13 @@ define root view entity ZC_ProcureOrder
   as projection on ZI_ProcureOrderComp
 {
       @UI.facet: [
+        { id: 'HeaderStatus',     purpose: #HEADER, type: #DATAPOINT_REFERENCE, targetQualifier: 'StatusHeaderDP', position: 10 },
+        { id: 'HeaderTotalSpend', purpose: #HEADER, type: #DATAPOINT_REFERENCE, targetQualifier: 'TotalSpendDataPoint', position: 20 },
+        { id: 'HeaderOrderTier',  purpose: #HEADER, type: #DATAPOINT_REFERENCE, targetQualifier: 'OrderTierHeaderDP', position: 30 },
+        { id: 'HeaderCreatedOn',  purpose: #HEADER, type: #DATAPOINT_REFERENCE, targetQualifier: 'CreatedDateHeaderDP', position: 40 },
+
+
+
         { id: 'HeaderDetails', purpose: #STANDARD, type: #IDENTIFICATION_REFERENCE, label: 'General Information', position: 10 },
         { id: 'Financials',    purpose: #STANDARD, type: #FIELDGROUP_REFERENCE, targetQualifier: 'FinancialGroup', label: 'Financial Details', position: 20 },
         { id: 'ItemDetails',   purpose: #STANDARD, type: #LINEITEM_REFERENCE, label: 'Line Items', position: 30, targetElement: '_POItem' },
@@ -61,6 +73,7 @@ define root view entity ZC_ProcureOrder
       @UI.identification: [{ position: 15 }]
       @UI.selectionField: [{ position: 15 }]
       @Search.defaultSearchElement: true
+      @Consumption.valueHelpDefinition: [{ entity: { name: 'ZC_Vendor01', element: 'vendor_id' } }]
       vendor_id,
 
       @EndUserText.label: 'Vendor Name'
@@ -87,6 +100,7 @@ define root view entity ZC_ProcureOrder
       @EndUserText.label: 'Currency'
       @UI.lineItem: [{ position: 40 }]
       @UI.fieldGroup: [{ qualifier: 'FinancialGroup', position: 20 }]
+      @Consumption.valueHelpDefinition: [{ entity: { name: 'I_Currency', element: 'Currency' } }]
       currency_code,
 
       @EndUserText.label: 'Status'
@@ -94,6 +108,7 @@ define root view entity ZC_ProcureOrder
       @UI.identification: [{ position: 50 },
                            { type: #FOR_ACTION, dataAction: 'setComplete', label: 'Set Complete' } ]
       @UI.selectionField: [{ position: 30 }]
+      @ObjectModel.text.element: ['status_text']
       status,
 
       @EndUserText.label: 'Approval Status'
@@ -105,16 +120,31 @@ define root view entity ZC_ProcureOrder
         { type: #FOR_ACTION, dataAction: 'setComplete',  label: 'Set Complete' }
       ]
       @UI.identification: [
-        { position: 60 } 
+        { position: 60 }
       ]
+      @UI.dataPoint: {
+          qualifier: 'StatusHeaderDP',
+          title: 'Lifecycle Status',
+          criticality: 'status_criticality'
+      }
       status_text,
-      
+
       @UI.hidden: true
       status_criticality,
 
       @EndUserText.label: 'Order Tier'
-      @UI.lineItem: [{ position: 70 }]
+      @UI.lineItem: [{ position: 70, criticality: 'order_tier_criticality' }]
+      @UI.identification: [{ position: 60, criticality: 'order_tier_criticality' }]
+      @UI.fieldGroup: [{ qualifier: 'FinancialGroup', position: 30, criticality: 'order_tier_criticality' }]
+      @UI.dataPoint: {
+          qualifier: 'OrderTierHeaderDP',
+          title: 'Order Spend Tier',
+          criticality: 'order_tier_criticality'
+      }
       order_tier,
+
+      @UI.hidden: true
+      order_tier_criticality,
 
       @EndUserText.label: 'Discount Amount'
       @Semantics.amount.currencyCode: 'currency_code'
@@ -124,6 +154,11 @@ define root view entity ZC_ProcureOrder
 
       @EndUserText.label: 'Created At'
       @UI.lineItem: [{ position: 90 }]
+      @UI.fieldGroup: [{ qualifier: 'FinancialGroup', position: 50 }]
+      @UI.dataPoint: {
+          qualifier: 'CreatedDateHeaderDP',
+          title: 'Creation Timestamp'
+      }
       created_at,
 
       @EndUserText.label: 'Vendor Name (from Master)'

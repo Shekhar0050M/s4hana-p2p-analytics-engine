@@ -63,15 +63,15 @@ early numbering
   /* Side Effects (instant UI synchronization on change/actions) */
   side effects {
     /* 1. Changing amount triggers real-time recalculation of tier & discount */
-    field total_amount affects field order_tier, field discount_amount;
+    field total_amount affects field order_tier,  field order_tier_criticality, field discount_amount;
     /* 2. Executing actions immediately refreshes status and re-evaluates button permissions */
-    action approveOrder affects field status, field status_text,
+    action approveOrder affects field status, field status_text, field status_criticality,
                                 permissions ( action setComplete, action cancelOrder, action approveOrder, action rejectOrder );
-    action rejectOrder  affects field status, field status_text,
+    action rejectOrder  affects field status, field status_text, field status_criticality,
                                 permissions ( action setComplete, action cancelOrder, action approveOrder, action rejectOrder );
-    action cancelOrder  affects field status, field status_text,
+    action cancelOrder  affects field status, field status_text, field status_criticality,
                                 permissions ( action setComplete, action cancelOrder, action approveOrder, action rejectOrder );
-    action setComplete  affects field status, field status_text,
+    action setComplete  affects field status, field status_text, field status_criticality,
                                 permissions ( action setComplete, action cancelOrder, action approveOrder, action rejectOrder );
   }
 
