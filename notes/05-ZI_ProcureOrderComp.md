@@ -1,18 +1,18 @@
-# ZI_ProcureOrderComp
+# ZI_ProcureOrderComp – Composite / Root View Entity
 
-**Type**: CDS Root View Entity (Composite)  
-**Layer**: Business Object / Composite  
-**File**: `src/zi_procureordercomp.ddls.asddls`
+**Type**: Root View Entity (CDS)  
+**File**: `src/zi_procureordercomp.ddls.asddls`  
+**Last Updated**: October 12, 2026
 
 ## Purpose
-This is the **heart of the Business Object**.  
-It:
-1. Selects from the basic interface view
-2. Adds calculated / derived fields
-3. Declares the **composition** to items
-4. Declares an **association** to the analytics view
 
-## Full Source Code
+Central Business Object definition for Purchase Order.
+- Acts as the root of the composition hierarchy
+- Adds all calculated / derived fields
+- Defines associations to analytics and vendor master
+- Serves as the base for the RAP behavior definition
+
+## Full Source (current)
 
 ```abap
 @AccessControl.authorizationCheck: #NOT_REQUIRED
@@ -21,12 +21,12 @@ It:
 
 define root view entity ZI_ProcureOrderComp
   as select from ZI_ProcureOrder
-  composition [0..*] of ZI_PoItem as _POItem
-  association [0..1] to ZC_VendorAnalytics as _VendorAnalytics 
-    on $projection.po_id = _VendorAnalytics.vendor_id
+  composition [0..*] of ZI_PoItem          as _POItem
+  association [0..1] to ZC_VendorAnalytics as _VendorAnalytics on $projection.po_id = _VendorAnalytics.vendor_id
+  association [0..1] to ZI_VENDOR01        as _Vendor          on $projection.vendor_id = _Vendor.vendor_id
 {
-
   key po_id,
+      vendor_id,
       vendor_name,
 
       upper( vendor_name )                                                                                  as vendor_name_upper,
@@ -42,14 +42,32 @@ define root view entity ZI_ProcureOrderComp
         when 'A' then 'Approved'
         when 'N' then 'New / Pending'
         when 'R' then 'Rejected'
+        when 'C' then 'Completed'
+        when 'X' then 'Cancelled'
         else 'Unknown Status'
       end                                                                                                   as status_text,
+
+      case status
+        when 'A' then 3  -- 3: Positive (Green)
+        when 'N' then 2  -- 2: Critical (Yellow/Orange)
+        when 'R' then 1  -- 1: Negative (Red)
+        when 'C' then 3  -- 3: Positive (Green)
+        when 'X' then 1  -- 1: Negative (Red)
+        else 0           -- 0: Neutral (Grey)
+      end                                                                                                   as status_criticality,
 
       case
         when total_amount >= 50000.00 then 'HIGH VALUE'
         when total_amount between 10000.00 and 49999.99 then 'MEDIUM VALUE'
         else 'STANDARD'
       end                                                                                                   as order_tier,
+      
+      case
+        when total_amount >= 50000.00 then 1                    -- 1: Attention / High Exposure (Red)
+        when total_amount between 10000.00 and 49999.99 then 2  -- 2: Medium (Yellow)
+        else 3                                                  -- 3: Standard / Low Risk (Green)
+      end                                                                                                   as order_tier_criticality,
+      
 
       @Semantics.amount.currencyCode: 'currency_code'
       cast( get_numeric_value( total_amount ) / 10 as abap.dec( 13, 2 ) ) * cast( 0.1 as abap.dec( 3, 2 ) ) as discount_amount,
@@ -57,98 +75,40 @@ define root view entity ZI_ProcureOrderComp
       created_at,
 
       _POItem,
-      _VendorAnalytics
+      _VendorAnalytics,
+      _Vendor
 }
 ```
 
-## Block-by-Block Explanation
+## Calculated Fields Explained
 
-### Root + Composition
-```abap
-define root view entity ZI_ProcureOrderComp
-  as select from ZI_ProcureOrder
-  composition [0..*] of ZI_PoItem as _POItem
-```
-- **`define root view entity`**  
-  Why: Marks this view as the root of a Business Object.  
-  Function: Enables transactional processing, draft, and composition handling in RAP.  
-  Relevance: Mandatory for a RAP BO.
+| Field | Logic | Purpose |
+|-------|-------|---------|
+| `status_text` | CASE on status | Human-readable status for UI |
+| `status_criticality` | CASE → 1/2/3 | Drives red/yellow/green coloring |
+| `order_tier` | Amount thresholds | Business classification of PO value |
+| `order_tier_criticality` | Same thresholds → 1/2/3 | Color coding of the tier |
+| `discount_amount` | 10% of total (demo) | Calculated field shown in UI |
+| `vendor_name_upper` | UPPER() | Example of simple transformation |
+| `po_summary_string` | CONCAT_WITH_SPACE | Convenience field for search/display |
 
-- **`composition [0..*] of ZI_PoItem as _POItem`**  
-  Why: Creates a strong parent-child relationship (ownership).  
-  Function: When the parent is deleted, children are deleted; the runtime manages the hierarchy.  
-  Relevance: This is the modern replacement for classic “header-item” foreign-key relationships in RAP.
+## Associations
 
-### Association to Analytics
-```abap
-association [0..1] to ZC_VendorAnalytics as _VendorAnalytics 
-  on $projection.po_id = _VendorAnalytics.vendor_id
-```
-- Why: We want to show vendor risk/spend next to the PO without making analytics part of the transactional BO.  
-- Function: Soft link (association) instead of composition.  
-- Relevance: Allows a side-panel / facet in the UI that shows analytics data.
+- `_POItem` → Composition (child items)
+- `_VendorAnalytics` → Link to the AMDP-based vendor analytics
+- `_Vendor` → Link to Vendor Master (for value help and additional data)
 
-### Calculated Fields
+## Relevance in Architecture
 
-#### 1. String functions
-```abap
-upper( vendor_name ) as vendor_name_upper,
-concat_with_space( po_id, vendor_name, 1 ) as po_summary_string,
-```
-- **Why used**: Demonstrate CDS string functions.  
-- **Function**: `upper()` converts to uppercase; `concat_with_space()` concatenates with a space.  
-- **Relevance**: Useful for search, display labels, or derived keys.
-
-#### 2. Status text (CASE)
-```abap
-case status
-  when 'A' then 'Approved'
-  when 'N' then 'New / Pending'
-  when 'R' then 'Rejected'
-  else 'Unknown Status'
-end as status_text,
-```
-- **Why**: Convert technical codes into human-readable text.  
-- **Function**: Simple conditional expression evaluated on the database.  
-- **Relevance**: Classic pattern for status description fields in CDS.
-
-#### 3. Order Tier (nested CASE)
-```abap
-case
-  when total_amount >= 50000.00 then 'HIGH VALUE'
-  when total_amount between 10000.00 and 49999.99 then 'MEDIUM VALUE'
-  else 'STANDARD'
-end as order_tier,
-```
-- **Why**: Business classification based on value.  
-- **Function**: Range-based CASE.  
-- **Relevance**: Shows how to implement simple business rules inside CDS.
-
-#### 4. Discount calculation
-```abap
-cast( get_numeric_value( total_amount ) / 10 as abap.dec( 13, 2 ) ) 
-  * cast( 0.1 as abap.dec( 3, 2 ) ) as discount_amount,
-```
-- **Why**: Example of numeric calculation + type casting.  
-- **Function**:  
-  - `get_numeric_value()` extracts the pure number from a currency field.  
-  - Division by 10 → 10 % of the amount.  
-  - Multiplication by 0.1 is just an additional example of casting.  
-- **Relevance**: Demonstrates how to safely calculate with currency amounts inside CDS.
-
-### Exposure of associations
-```abap
-_POItem,
-_VendorAnalytics
-```
-Must be listed so that higher layers (projections) can redirect or use them.
+This is the single most important CDS view in the project:
+- It is the **root** of the RAP Business Object
+- All transactional operations are defined against it
+- All UI projections (`ZC_*`) are based on it
+- Calculated fields + criticality are defined once here and reused everywhere
 
 ## Linked Objects
-- **From**: [[03-ZI_ProcureOrder]]
-- **Composition child**: [[04-ZI_PoItem]]
-- **Association target**: [[09-ZC_VendorAnalytics]]
-- **Projected by**: [[10-ZC_ProcureOrder]]
-
-## Relevance
-This is the **single most important object** in the project.  
-Everything above it (UI projections, OData service) is just a thin layer on top of this composite root.
+- Behavior Definition: [[15-ZI_ProcureOrderComp-BDEF]]
+- Consumption View: [[10-ZC_ProcureOrder]]
+- Basic Interface: [[03-ZI_ProcureOrder]]
+- Item View: [[04-ZI_PoItem]]
+- Latest Enhancements: [[21-Latest-Enhancements-Oct2026]]
