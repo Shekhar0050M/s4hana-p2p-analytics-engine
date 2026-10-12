@@ -26,7 +26,13 @@ early numbering
   association _POItem { create; with draft; }
 
   determination SetInitialStatus on save { create; }
-  validation ValidateTotalAmount on save { create; update; }
+  determination CalculateOrderDefaults on save { create; }
+  determination CalculateOrderTier on modify { field total_amount; create; update; }
+
+  validation ValidateTotalAmount on save { field total_amount; create; update; }
+  validation ValidateVendor      on save { field vendor_name; create; update; }
+  validation ValidateCurrency    on save { field currency_code; create; update; }
+  validation ValidateStatus      on save { field status; create; update; }
 
   action setComplete result [1] $self;
 
@@ -36,6 +42,9 @@ early numbering
   draft action Resume;
   draft determine action Prepare{
     validation ValidateTotalAmount;
+    validation ValidateVendor;
+    validation ValidateCurrency;
+    validation ValidateStatus;
   }
 
   mapping for ztb_po_hdr

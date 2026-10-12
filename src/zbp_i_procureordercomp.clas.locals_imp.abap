@@ -71,9 +71,23 @@ CLASS lhc_PurchaseOrder DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS setComplete FOR MODIFY
       IMPORTING keys FOR ACTION PurchaseOrder~setComplete RESULT result.
+    METHODS CalculateOrderTier FOR DETERMINE ON MODIFY
+      IMPORTING keys FOR PurchaseOrder~CalculateOrderTier.
+
+    METHODS CalculateOrderDefaults FOR DETERMINE ON SAVE
+       keys FOR PurchaseOrder~CalculateOrderDefaults.
+
+    METHODS ValidateCurrency FOR VALIDATE ON SAVE
+       keys FOR PurchaseOrder~ValidateCurrency.
+
+    METHODS ValidateStatus FOR VALIDATE ON SAVE
+       keys FOR PurchaseOrder~ValidateStatus.
+
+    METHODS ValidateVendor FOR VALIDATE ON SAVE
+       keys FOR PurchaseOrder~ValidateVendor.
 
     METHODS earlynumbering_create FOR NUMBERING
-      entities FOR CREATE PurchaseOrder.
+       entities FOR CREATE PurchaseOrder.
 
 ENDCLASS.
 
@@ -199,6 +213,121 @@ CLASS lhc_PurchaseOrder IMPLEMENTATION.
         po_id     = lv_new_po
       ) TO mapped-purchaseorder.
     ENDLOOP.
+  ENDMETHOD.
+
+  METHOD CalculateOrderTier.
+  ENDMETHOD.
+
+  METHOD CalculateOrderDefaults.
+    "  Populate default currency code ('USD') and created_at timestamp if missing
+    READ ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+      ENTITY PurchaseOrder
+        FIELDS ( currency_code created_at )
+        WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_purchase_orders).
+    DATA: lt_update TYPE TABLE FOR UPDATE ZI_ProcureOrderComp\\PurchaseOrder.
+    DATA ls_upd LIKE LINE OF lt_update.
+    DATA(lv_timestamp) = utclong_current( ).
+    LOOP AT lt_purchase_orders INTO DATA(ls_po).
+      DATA(lv_needs_update) = abap_false.
+      ls_upd-%tky = ls_po-%tky.
+      IF ls_po-currency_code IS INITIAL.
+        ls_upd-currency_code = 'USD'.
+        ls_upd-%control-currency_code = if_abap_behv=>mk-on.
+        lv_needs_update = abap_true.
+      ENDIF.
+      IF ls_po-created_at IS INITIAL.
+        ls_upd-created_at = lv_timestamp.
+        ls_upd-%control-created_at = if_abap_behv=>mk-on.
+        lv_needs_update = abap_true.
+      ENDIF.
+      IF lv_needs_update = abap_true.
+        APPEND ls_upd TO lt_update.
+      ENDIF.
+    ENDLOOP.
+    IF lt_update IS NOT INITIAL.
+      MODIFY ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+        ENTITY PurchaseOrder
+          UPDATE FIELDS ( currency_code created_at )
+          WITH lt_update
+        REPORTED DATA(lt_reported)
+        FAILED DATA(lt_failed).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD ValidateCurrency.
+
+    READ ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+      ENTITY PurchaseOrder
+        FIELDS ( currency_code )
+        WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_purchase_orders).
+    LOOP AT lt_purchase_orders INTO DATA(ls_po).
+      IF ls_po-currency_code IS NOT INITIAL.
+        DATA(lv_curr) = to_upper( ls_po-currency_code ).
+        IF lv_curr <> 'USD' AND lv_curr <> 'EUR' AND lv_curr <> 'GBP' AND
+           lv_curr <> 'JPY' AND lv_curr <> 'CAD' AND lv_curr <> 'INR' AND
+           lv_curr <> 'CHF' AND lv_curr <> 'AUD'.
+          APPEND VALUE #( %tky = ls_po-%tky ) TO failed-purchaseorder.
+          APPEND VALUE #(
+            %tky                   = ls_po-%tky
+            %msg                   = new_message_with_text(
+                                       severity = if_abap_behv_message=>severity-error
+                                       text     = |Invalid currency code { ls_po-currency_code }| )
+            %element-currency_code = if_abap_behv=>mk-on
+          ) TO reported-purchaseorder.
+        ENDIF.
+      ENDIF.
+    ENDLOOP.
+
+
+  ENDMETHOD.
+
+  METHOD ValidateStatus.
+
+    READ ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+      ENTITY PurchaseOrder
+        FIELDS ( status )
+        WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_purchase_orders).
+    LOOP AT lt_purchase_orders INTO DATA(ls_po).
+      IF ls_po-status <> 'N' AND ls_po-status <> 'A' AND
+         ls_po-status <> 'R' AND ls_po-status <> 'C' AND
+         ls_po-status <> 'X'.
+        APPEND VALUE #( %tky = ls_po-%tky ) TO failed-purchaseorder.
+        APPEND VALUE #(
+          %tky            = ls_po-%tky
+          %msg            = new_message_with_text(
+                              severity = if_abap_behv_message=>severity-error
+                              text     = |Invalid status code { ls_po-status }| )
+          %element-status = if_abap_behv=>mk-on
+        ) TO reported-purchaseorder.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD ValidateVendor.
+
+    READ ENTITIES OF ZI_ProcureOrderComp IN LOCAL MODE
+      ENTITY PurchaseOrder
+        FIELDS ( vendor_name )
+        WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_purchase_orders).
+    LOOP AT lt_purchase_orders INTO DATA(ls_po).
+      DATA(lv_vendor_trimmed) = condense( ls_po-vendor_name ).
+      IF lv_vendor_trimmed IS INITIAL OR strlen( lv_vendor_trimmed ) < 3.
+        APPEND VALUE #( %tky = ls_po-%tky ) TO failed-purchaseorder.
+        APPEND VALUE #(
+          %tky                 = ls_po-%tky
+          %msg                 = new_message_with_text(
+                                   severity = if_abap_behv_message=>severity-error
+                                   text     = 'Valid vendor name required (minimum 3 characters)' )
+          %element-vendor_name = if_abap_behv=>mk-on
+        ) TO reported-purchaseorder.
+      ENDIF.
+    ENDLOOP.
+
   ENDMETHOD.
 
 ENDCLASS.
