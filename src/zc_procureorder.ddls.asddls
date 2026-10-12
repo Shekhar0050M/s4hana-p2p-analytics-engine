@@ -98,7 +98,7 @@ define root view entity ZC_ProcureOrder
 
       @EndUserText.label: 'Approval Status'
       @UI.lineItem: [
-        { position: 60 },
+        { position: 60, criticality: 'status_criticality', criticalityRepresentation: #WITHOUT_ICON  },
         { type: #FOR_ACTION, dataAction: 'approveOrder', label: 'Approve' },
         { type: #FOR_ACTION, dataAction: 'rejectOrder',  label: 'Reject' },
         { type: #FOR_ACTION, dataAction: 'cancelOrder',  label: 'Cancel' },
